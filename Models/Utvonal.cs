@@ -22,5 +22,5 @@ public partial class Utvonal
 
     [JsonIgnore]
 
-    public virtual ICollection<Tura> ? Turas { get; set; } = new List<Tura>();
+    public virtual ICollection<Tura> Turas { get; set; } = new List<Tura>();
 }

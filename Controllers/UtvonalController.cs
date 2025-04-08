@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Nodes;
 using TuristaApi2.Models;
 
 namespace TuristaApi2.Controllers
@@ -9,6 +10,32 @@ namespace TuristaApi2.Controllers
     [ApiController]
     public class UtvonalController : ControllerBase
     {
+        [HttpGet("ById")]
+        public IActionResult GetById(int id)
+        {
+            try
+            {
+                using (var context = new TuristadbContext())
+                {
+                    var response = context.Utvonals.Include(f => f.Nehezseg).FirstOrDefault(f => f.Id == id);
+                    if (response == null)
+                    {
+                        var jsonObject = new JsonObject { ["id"] = response.Id, ["allomasok"] = response.Allomasok, ["tav"] = response.Tav, ["nehezseg"] = response.Nehezseg.Leiras }; 
+                        return Ok(jsonObject);
+                    }
+                    else
+                    {
+                        return StatusCode(419, "Valószínűleg nincs ilyen túra.");
+                    }
+                   
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpGet("All")]
         public IActionResult GetUtvonal()
         {
@@ -16,39 +43,13 @@ namespace TuristaApi2.Controllers
             {
                 using (var context = new TuristadbContext())
                 {
-                    var utvonal = context.Utvonals.ToList();
-                    if (utvonal == null || utvonal.Count == 0)
-                    {
-                        return NotFound("Nincs elérhető útvonal.");
-                    }
-                    return Ok(utvonal);
+                    var response = context.Utvonals.Include(f => f.Nehezseg).ToList();
+                    return Ok(response);
                 }
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status404NotFound, ex.Message);
-            }
-        }
-
-        [HttpGet("ById")]
-
-        public IActionResult GetUtvonalById(int id)
-        {
-            try
-            {
-                using (var context = new TuristadbContext())
-                {
-                    var utvonal = context.Utvonals.Include(f=>f.Allomasok).Include(f=>f.Tav).Include(f=>f.Nehezseg).FirstOrDefault(f => f.Id == id);
-                    if (utvonal == null)
-                    {
-                        return NotFound("Valószínűleg nincs ilyen túra.");
-                    }
-                    return Ok(utvonal);
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status419AuthenticationTimeout, ex.Message);
+                return BadRequest("Hiba a beolvasás során: " + ex.Message);
             }
         }
     }

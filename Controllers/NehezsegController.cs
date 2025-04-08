@@ -33,5 +33,31 @@ namespace TuristaApi2.Controllers
                 }
             }
         }
+
+        [HttpDelete("{id}")]
+
+        public  IActionResult Delete(int id)
+        {
+            try
+            {
+                using (var context = new TuristadbContext())
+                {
+                    context.Nehezsegs.Remove(new Nehezseg { Id=id});
+                    context.SaveChangesAsync();
+                    return Ok("Sikeres törlés.");
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException == null)
+                {
+                    return StatusCode(404, $"Nem létező nehézségi fok.");
+                }
+                else
+                {
+                    return BadRequest(ex.InnerException.Message);
+                }
+            }
+        }
     }
 }
